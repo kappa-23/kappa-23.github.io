@@ -1884,7 +1884,9 @@
     <p class="more"><a href="#top">↑ 回到頂部</a></p>
   </main>
 
-  <script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
   function toNum(v){
     const n = Number(String(v ?? "").replace(/[^0-9.]/g, ""));
     return Number.isFinite(n) ? n : 0;
@@ -1898,10 +1900,8 @@
       const raw = String(wEl.value ?? '').trim();
       const isEmpty = raw === '';
 
-      // 切換淡灰標記
       row.classList.toggle('is-empty', isEmpty);
 
-      // ⚠︎ 標記（只新增一次）
       const nameEl = row.querySelector('.gear-name');
       if(!nameEl) return;
 
@@ -1946,12 +1946,17 @@
       else base += w;
     });
 
-    document.getElementById('baseW').textContent = Math.round(base);
-    document.getElementById('wornW').textContent = Math.round(worn);
-    document.getElementById('consW').textContent = Math.round(cons);
-    document.getElementById('totalW').textContent = Math.round(total);
+    // ✅ 全部加保險：元素不存在就略過，別讓整段炸掉
+    const baseEl = document.getElementById('baseW');
+    const wornEl = document.getElementById('wornW');
+    const consEl = document.getElementById('consW');
+    const totalEl = document.getElementById('totalW');
 
-    // ⚠︎ 空白重量標記
+    if(baseEl) baseEl.textContent = Math.round(base);
+    if(wornEl) wornEl.textContent = Math.round(worn);
+    if(consEl) consEl.textContent = Math.round(cons);
+    if(totalEl) totalEl.textContent = Math.round(total);
+
     markEmptyWeights();
   }
 
@@ -1960,45 +1965,55 @@
     if(e.target.matches('.w') || e.target.matches('.t')) render();
   });
 
-  // 展開/收合
-  document.getElementById('expandAll').addEventListener('click', () => {
-    document.querySelectorAll('details.gear-section').forEach(d => d.open = true);
-  });
-  document.getElementById('collapseAll').addEventListener('click', () => {
-    document.querySelectorAll('details.gear-section').forEach(d => d.open = false);
-  });
-
-  // CSV 匯出
-  document.getElementById('exportCSV').addEventListener('click', () => {
-    const rows = [];
-    rows.push(['category','item','type','weight_g','note'].join(','));
-
-    document.querySelectorAll('details.gear-section').forEach(section => {
-      const cat = section.querySelector('summary span')?.textContent?.trim() || '';
-      section.querySelectorAll('.gear-item').forEach(item => {
-        const name = item.querySelector('.gear-name')?.textContent?.trim() || '';
-        const type = item.querySelector('.t')?.value || 'base';
-        const w = item.querySelector('.w')?.value || '';
-        const note = item.querySelector('.small')?.textContent?.trim() || '';
-        const safe = (s) => '"' + String(s).replaceAll('"','""') + '"';
-        rows.push([safe(cat), safe(name), safe(type), safe(w), safe(note)].join(','));
-      });
+  // ✅ 展開/收合：先抓到按鈕再綁定（不存在就跳過）
+  const btnExpand = document.getElementById('expandAll');
+  if(btnExpand){
+    btnExpand.addEventListener('click', () => {
+      document.querySelectorAll('details.gear-section').forEach(d => d.open = true);
     });
+  }
 
-    const csv = rows.join('\n');
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'gear.csv';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  });
+  const btnCollapse = document.getElementById('collapseAll');
+  if(btnCollapse){
+    btnCollapse.addEventListener('click', () => {
+      document.querySelectorAll('details.gear-section').forEach(d => d.open = false);
+    });
+  }
+
+  const btnCSV = document.getElementById('exportCSV');
+  if(btnCSV){
+    btnCSV.addEventListener('click', () => {
+      const rows = [];
+      rows.push(['category','item','type','weight_g','note'].join(','));
+
+      document.querySelectorAll('details.gear-section').forEach(section => {
+        const cat = section.querySelector('summary span')?.textContent?.trim() || '';
+        section.querySelectorAll('.gear-item').forEach(item => {
+          const name = item.querySelector('.gear-name')?.textContent?.trim() || '';
+          const type = item.querySelector('.t')?.value || 'base';
+          const w = item.querySelector('.w')?.value || '';
+          const note = item.querySelector('.small')?.textContent?.trim() || '';
+          const safe = (s) => '"' + String(s).replaceAll('"','""') + '"';
+          rows.push([safe(cat), safe(name), safe(type), safe(w), safe(note)].join(','));
+        });
+      });
+
+      const csv = rows.join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'gear.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  }
 
   // 初次計算
   render();
+});
 </script>
 </body>
 </html>
