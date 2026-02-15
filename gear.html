@@ -1972,16 +1972,45 @@ document.addEventListener('DOMContentLoaded', () => {
       else base += w;
     });
 
-    // ✅ 全部加保險：元素不存在就略過，別讓整段炸掉
-    const baseEl = document.getElementById('baseW');
-    const wornEl = document.getElementById('wornW');
-    const consEl = document.getElementById('consW');
-    const totalEl = document.getElementById('totalW');
+   // ---- 位置配重：依 data-cat 加總 ----
+function parseWeight(val){
+  const n = Number(String(val ?? '').replace(/,/g,'').trim());
+  return Number.isFinite(n) ? n : 0;
+}
 
-    if(baseEl) baseEl.textContent = Math.round(base);
-    if(wornEl) wornEl.textContent = Math.round(worn);
-    if(consEl) consEl.textContent = Math.round(cons);
-    if(totalEl) totalEl.textContent = Math.round(total);
+function sumCat(catIndex){
+  const box = document.querySelector(`.gear-cat[data-cat="${catIndex}"]`);
+  if(!box) return 0;
+
+  let sum = 0;
+  box.querySelectorAll('.w').forEach(el => {
+    const raw = ('value' in el) ? el.value : el.textContent; // 兼容 input / span
+    sum += parseWeight(raw);
+  });
+  return sum;
+}
+
+const bike  = sumCat(0);
+const front = sumCat(1);
+const frame = sumCat(2);
+const rear  = sumCat(3);
+const body  = sumCat(4);
+const total = bike + front + frame + rear + body;
+
+// ✅ 全部加保險：元素不存在就略過
+const bikeEl  = document.getElementById('bikeW');
+const frontEl = document.getElementById('frontW');
+const frameEl = document.getElementById('frameW');
+const rearEl  = document.getElementById('rearW');
+const bodyEl  = document.getElementById('bodyW');
+const totalEl = document.getElementById('totalW');
+
+if(bikeEl)  bikeEl.textContent  = Math.round(bike);
+if(frontEl) frontEl.textContent = Math.round(front);
+if(frameEl) frameEl.textContent = Math.round(frame);
+if(rearEl)  rearEl.textContent  = Math.round(rear);
+if(bodyEl)  bodyEl.textContent  = Math.round(body);
+if(totalEl) totalEl.textContent = Math.round(total);
 
     markEmptyWeights();
   }
