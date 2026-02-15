@@ -174,25 +174,22 @@
   </main>
 
   <!-- ✅ nav 注入：放在 body 最後，且等 DOM 有 #nav-placeholder 再塞 -->
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      fetch('./nav.html', { cache: 'no-store' })
-        .then(res => {
-          if(!res.ok) throw new Error('nav.html not found');
-          return res.text();
-        })
-        .then(html => {
-          const holder = document.getElementById('nav-placeholder');
-          if (holder) holder.innerHTML = html;
-        })
-        .catch(() => {
-          // nav 讀不到就安靜略過，不要破壞整頁
-        });
-    });
-  </script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
 
-  <!-- ✅ 你的 gear 計算腳本：照你原本的放這裡（不要放 head / body 前） -->
-  <script>
+  // 1) 載入 nav（失敗就安靜略過）
+  fetch('./nav.html', { cache: 'no-store' })
+    .then(res => {
+      if(!res.ok) throw new Error('nav.html not found');
+      return res.text();
+    })
+    .then(html => {
+      const holder = document.getElementById('nav-placeholder');
+      if (holder) holder.innerHTML = html;
+    })
+    .catch(() => { /* ignore */ });
+
+  // 2) Gear functions
   function toNum(v){
     const n = Number(String(v ?? "").replace(/[^0-9.]/g, ""));
     return Number.isFinite(n) ? n : 0;
@@ -250,21 +247,28 @@
       else base += w;
     });
 
-    document.getElementById('baseW').textContent = Math.round(base);
-    document.getElementById('wornW').textContent = Math.round(worn);
-    document.getElementById('consW').textContent = Math.round(cons);
-    document.getElementById('totalW').textContent = Math.round(total);
+    const baseEl = document.getElementById('baseW');
+    const wornEl = document.getElementById('wornW');
+    const consEl = document.getElementById('consW');
+    const totalEl = document.getElementById('totalW');
+
+    if(baseEl) baseEl.textContent = Math.round(base);
+    if(wornEl) wornEl.textContent = Math.round(worn);
+    if(consEl) consEl.textContent = Math.round(cons);
+    if(totalEl) totalEl.textContent = Math.round(total);
 
     markEmptyWeights();
   }
 
+  // 3) 事件綁定（這裡一定在 DOM 出現後才會跑）
   document.addEventListener('input', (e) => {
-    if(e.target.matches('.w') || e.target.matches('.t')) render();
+    if(e.target && (e.target.matches('.w') || e.target.matches('.t'))) render();
   });
 
   document.getElementById('expandAll')?.addEventListener('click', () => {
     document.querySelectorAll('details.gear-section').forEach(d => d.open = true);
   });
+
   document.getElementById('collapseAll')?.addEventListener('click', () => {
     document.querySelectorAll('details.gear-section').forEach(d => d.open = false);
   });
@@ -297,7 +301,9 @@
     URL.revokeObjectURL(url);
   });
 
+  // 4) 初次計算
   render();
-  </script>
+});
+</script>
 </body>
 </html>
