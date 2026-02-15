@@ -122,12 +122,20 @@ nav .nav-inner{
   margin:0 auto;
   padding:12px var(--pad);
   display:flex;
-  justify-content:center;
+  /* 預設靠左，解決手機第一個字被吃掉且無法往右滑的問題 */
+  justify-content:flex-start; 
   gap:16px;
   flex-wrap:nowrap;
   overflow-x:auto;
   -webkit-overflow-scrolling:touch;
   white-space:nowrap;
+}
+
+/* 當螢幕寬度足夠時，再恢復置中美觀 */
+@media (min-width: 600px) {
+  nav .nav-inner {
+    justify-content: center;
+  }
 }
 nav .nav-inner::-webkit-scrollbar{ display:none; }
 
