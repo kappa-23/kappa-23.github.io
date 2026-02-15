@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- 關鍵：讓 GitHub Pages 專案站正常 -->
-  <base href="/23site/">
+  <!-- ✅ 讓相對路徑以「目前資料夾」為基準（GitHub Pages: /23site/） -->
+  <base href="./">
 
   <link rel="stylesheet" href="style.css?v=11">
   <title>第二十三號</title>
@@ -32,7 +32,7 @@
     <h1>第二十三號</h1>
     <p class="muted">RIDING LOG｜人類精神採集計畫｜京都 - 巴黎</p>
 
-    <section class="countdown-container">
+    <section class="countdown-container" aria-label="Departure Countdown">
       <div class="label">出發倒數 · Departure Countdown</div>
       <div id="countdown">載入中…</div>
     </section>
@@ -121,33 +121,78 @@
   <script>
     const DEPARTURE_MS = new Date("2026-03-05T00:00:00+08:00").getTime();
     const el = document.getElementById("countdown");
-
     function pad2(n){ return String(n).padStart(2, "0"); }
 
-    function render(){
-      const now = Date.now();
-      const diff = DEPARTURE_MS - now;
-
-      if (diff > 0){
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        el.textContent = `T- ${days}D`;
-      } else {
-        const day = Math.floor((-diff) / (1000*60*60*24)) + 1;
-        el.textContent = `κ-Day ${String(day).padStart(3,"0")}`;
-      }
+    function formatTminus(ms){
+      let d = ms;
+      const days = Math.floor(d / 86400000); d %= 86400000;
+      const hours = Math.floor(d / 3600000); d %= 3600000;
+      const minutes = Math.floor(d / 60000); d %= 60000;
+      const seconds = Math.floor(d / 1000);
+      return `T- ${days}D ${pad2(hours)}H ${pad2(minutes)}M ${pad2(seconds)}S`;
     }
 
+    function formatKdayPlus(msAfter){
+      const s = Math.floor(msAfter / 1000);
+      const dayIndex = Math.floor(s / 86400) + 1;
+      const dayStr = String(dayIndex).padStart(3, "0");
+      const withinDay = s % 86400;
+      const hh = Math.floor(withinDay / 3600);
+      const mm = Math.floor((withinDay % 3600) / 60);
+      const ss = withinDay % 60;
+      return `κ-Day ${dayStr} · +${pad2(hh)}:${pad2(mm)}:${pad2(ss)}`;
+    }
+
+    function render(){
+      const diff = DEPARTURE_MS - Date.now();
+      el.textContent = diff > 0 ? formatTminus(diff) : formatKdayPlus(-diff);
+    }
     render();
-    setInterval(render, 1000);
+    setInterval(render, 250);
   </script>
 
   <script>
-    fetch('nav.html')
+    // ✅ 一定要用相對路徑（不要 /nav.html）
+    fetch("nav.html")
       .then(res => res.text())
       .then(html => {
-        document.getElementById('nav-placeholder').innerHTML = html;
+        document.getElementById("nav-placeholder").innerHTML = html;
+
+        const dropdowns = document.querySelectorAll(".nav-dd");
+        dropdowns.forEach(dd => {
+          const btn = dd.querySelector(".nav-btn");
+          const menu = dd.querySelector(".nav-menu");
+          if(!btn || !menu) return;
+
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const open = btn.getAttribute("aria-expanded") === "true";
+
+            dropdowns.forEach(other => {
+              const ob = other.querySelector(".nav-btn");
+              const om = other.querySelector(".nav-menu");
+              if(ob && om){
+                ob.setAttribute("aria-expanded", "false");
+                om.hidden = true;
+              }
+            });
+
+            btn.setAttribute("aria-expanded", String(!open));
+            menu.hidden = open;
+          });
+        });
+
+        document.addEventListener("click", () => {
+          dropdowns.forEach(dd => {
+            const btn = dd.querySelector(".nav-btn");
+            const menu = dd.querySelector(".nav-menu");
+            if(btn && menu){
+              btn.setAttribute("aria-expanded", "false");
+              menu.hidden = true;
+            }
+          });
+        });
       });
   </script>
-
 </body>
 </html>
