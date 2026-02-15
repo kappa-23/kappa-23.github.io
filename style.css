@@ -106,39 +106,56 @@ details + h2 {
 .center a{ display:inline-block; }
 
 /* =========================
-   3) 導覽列（置中 + 單行 + 可左右滑）
+   3) 導覽列（單行 + 可滑動，穩定版）
    ========================= */
-nav{
+.topnav{
   position: sticky;
   top: 0;
   background: rgba(255,255,255,.95);
   backdrop-filter: blur(5px);
-  border-bottom:1px solid #f0f0f0;
-  z-index:999;
+  border-bottom: 1px solid #f0f0f0;
+  z-index: 999;
 }
 
-nav .nav-inner{
+.topnav .nav-inner{
   max-width: var(--wrap);
-  margin:0 auto;
-  padding:12px var(--pad);
-  display:flex;
-  /* 預設靠左，解決手機第一個字被吃掉且無法往右滑的問題 */
-  justify-content:flex-start; 
-  gap:16px;
-  flex-wrap:nowrap;
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-  white-space:nowrap;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  padding: 12px var(--pad);
+  box-sizing: border-box;
 }
 
-/* 當螢幕寬度足夠時，再恢復置中美觀 */
-@media (min-width: 600px) {
-  nav .nav-inner {
+.topnav .nav-inner::-webkit-scrollbar{
+  display: none;
+}
+
+.topnav a{
+  display: inline-block;
+  padding: 10px 2px;
+  line-height: 1.1;
+}
+
+/* 桌機置中 */
+@media (min-width: 600px){
+  .topnav .nav-inner{
     justify-content: center;
   }
 }
-nav .nav-inner::-webkit-scrollbar{ display:none; }
 
+/* 手機靠左 */
+@media (max-width: 599px){
+  .topnav .nav-inner{
+    justify-content: flex-start;
+  }
+}
 /* =========================
    4) 首頁國家區塊 + 六宮格卡片
    ========================= */
@@ -529,7 +546,7 @@ figure.photo {
   }
 }
 
-.muted{
+.meta.lang-en{
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -538,12 +555,6 @@ figure.photo {
    NAV: Mobile clipping fix
    修：第一個字被切掉 / 不能滑到最左 / iOS safe-area / 100vw 偏移
    ========================= */
-
-/* 全站避免奇怪水平爆版（不影響 nav 自己的可滑動） */
-html, body{
-  max-width: 100%;
-  overflow-x: hidden;
-}
 
 /* 導覽列本體：不要被裁切 */
 .topnav{
